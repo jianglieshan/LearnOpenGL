@@ -16,3 +16,8 @@ target_link_libraries(LearnOpenGL PRIVATE
         glfw3  # 直接使用GLFW官方目标名
         opengl32
 )
+
+# 针对 MinGW 的额外配置
+if(MINGW)
+    target_link_options(LearnOpenGL PRIVATE "-mwindows")
+endif()
