@@ -19,6 +19,15 @@ layout (location = 0) in vec3 aPos;
             gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
         })";
 
+auto vertexShaderSource1 = R"(#version 330 core
+layout (location = 0) in vec3 aPos;
+
+        void main()
+        {
+            gl_Position = vec4(-aPos.x, aPos.y, aPos.z, 1.0);
+        })";
+
+
 auto fragmentShaderSource = R"(#version 330 core
             out vec4 FragColor;
 
@@ -104,6 +113,10 @@ int main() {
         return -1;
     }
 
+    int nrAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+    std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+
     unsigned int VAO[2],VBO[2],EBO[2];
 
     glGenVertexArrays(2, VAO);
@@ -142,7 +155,7 @@ int main() {
 
     unsigned int shaderProgram = getShaderProgram(&vertexShaderSource,&fragmentShaderSource);
 
-    unsigned int yellowShaderProgram = getShaderProgram(&vertexShaderSource,&fragmentYellowShaderSource);
+    unsigned int yellowShaderProgram = getShaderProgram(&vertexShaderSource1,&fragmentYellowShaderSource);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
