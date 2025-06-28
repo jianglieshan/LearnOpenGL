@@ -67,6 +67,7 @@ int main() {
         0.5f, 0.5f, 0.0f,
         -0.5f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
+        1.0f,0.0f,0.0f
     };
     unsigned int indices[] = {
         // 注意索引从0开始!
@@ -74,7 +75,8 @@ int main() {
         // 这样可以由下标代表顶点组合成矩形
 
         0, 1, 2, // 第一个三角形
-        0, 1, 3  // 第二个三角形
+        0, 1, 3,  // 第二个三角形
+        1, 3, 4
     };
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -123,7 +125,7 @@ int main() {
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
