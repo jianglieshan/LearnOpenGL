@@ -54,7 +54,7 @@ int main() {
         return -1;
     }
 
-    unsigned int VBO,VAO;
+    unsigned int VBO, VAO;
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -63,12 +63,15 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     float vertices[] = {
         -0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f
+        0.5f, 0.5f, 0.0f,
+        -0.5, -0.5, 0.0f
     };
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -104,7 +107,7 @@ int main() {
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
