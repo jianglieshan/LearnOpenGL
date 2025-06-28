@@ -27,6 +27,14 @@ auto fragmentShaderSource = R"(#version 330 core
                 FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
             } )";
 
+auto fragmentYellowShaderSource = R"(#version 330 core
+            out vec4 FragColor;
+
+            void main()
+            {
+                FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+            } )";
+
 
 void do_work(unsigned int VAO, unsigned int VBO, unsigned int EBO, float vertices[],int size_v, unsigned int indices[],int size_i) {
     glBindVertexArray(VAO);
@@ -40,6 +48,34 @@ void do_work(unsigned int VAO, unsigned int VBO, unsigned int EBO, float vertice
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_i, indices, GL_STATIC_DRAW);
+}
+
+unsigned int getShaderProgram(const char ** vertexShaderSource,const char ** fragmentShaderSource) {
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, vertexShaderSource, NULL );
+    glCompileShader(vertexShader);
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    //程序链接以后，即可删除编译产物
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+    return shaderProgram;
 }
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -104,33 +140,10 @@ int main() {
     do_work(VAO[1], VBO[1], EBO[1], vertices1,sizeof(vertices1), indices1,sizeof(indices1));
 
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    unsigned int shaderProgram = getShaderProgram(&vertexShaderSource,&fragmentShaderSource);
 
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
+    unsigned int yellowShaderProgram = getShaderProgram(&vertexShaderSource,&fragmentYellowShaderSource);
 
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    //程序链接以后，即可删除编译产物
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
@@ -138,10 +151,14 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glBindVertexArray(VAO[0]);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
         glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 
+        glUseProgram(yellowShaderProgram);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindVertexArray(VAO[1]);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
@@ -151,6 +168,7 @@ int main() {
     }
 
     glDeleteProgram(shaderProgram);
+    glDeleteProgram(yellowShaderProgram);
     glDeleteVertexArrays(1, VAO);
     glDeleteBuffers(1, VBO);
 
