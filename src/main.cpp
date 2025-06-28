@@ -1,3 +1,4 @@
+#include <cmath>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -21,10 +22,10 @@ layout (location = 0) in vec3 aPos;
 
 auto vertexShaderSource1 = R"(#version 330 core
 layout (location = 0) in vec3 aPos;
-
+uniform float offset; // 在OpenGL程序代码中设定这个变量
         void main()
         {
-            gl_Position = vec4(-aPos.x, aPos.y, aPos.z, 1.0);
+            gl_Position = vec4(-aPos.x - offset, aPos.y, aPos.z, 1.0);
         })";
 
 
@@ -171,6 +172,13 @@ int main() {
         glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 
         glUseProgram(yellowShaderProgram);
+
+        // 更新uniform颜色
+        float timeValue = glfwGetTime();
+        float offset = std::sin(timeValue) / 2.0f + 0.5f;
+        int offsetLocation = glGetUniformLocation(yellowShaderProgram, "offset");
+        glUniform1f(offsetLocation, offset);
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindVertexArray(VAO[1]);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
