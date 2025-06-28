@@ -28,6 +28,20 @@ auto fragmentShaderSource = R"(#version 330 core
             } )";
 
 
+void do_work(unsigned int VAO, unsigned int VBO, unsigned int EBO, float vertices[],int size_v, unsigned int indices[],int size_i) {
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, size_v, vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_i, indices, GL_STATIC_DRAW);
+}
+
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
     glfwInit();
@@ -54,13 +68,11 @@ int main() {
         return -1;
     }
 
-    unsigned int VBO, VAO,EBO;
+    unsigned int VAO[2],VBO[2],EBO[2];
 
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glGenVertexArrays(2, VAO);
+    glGenBuffers(2, VBO);
+    glGenBuffers(2, EBO);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f,
@@ -79,14 +91,18 @@ int main() {
         1, 3, 4
     };
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    do_work(VAO[0], VBO[0], EBO[0], vertices,sizeof(vertices), indices,sizeof(indices));
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
+    float vertices1[] = {
+        -0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        -1.0f,0.0f,0.0f
+    };
+    unsigned int indices1[] = {
+        0, 1, 2, // 第一个三角形
+    };
+    do_work(VAO[1], VBO[1], EBO[1], vertices1,sizeof(vertices1), indices1,sizeof(indices1));
 
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -122,18 +138,21 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBindVertexArray(VAO[0]);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
         glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(VAO[1]);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glDeleteProgram(shaderProgram);
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, VAO);
+    glDeleteBuffers(1, VBO);
 
     glfwTerminate();
     return 0;
