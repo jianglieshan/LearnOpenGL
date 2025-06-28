@@ -22,10 +22,12 @@ layout (location = 0) in vec3 aPos;
 
 auto vertexShaderSource1 = R"(#version 330 core
 layout (location = 0) in vec3 aPos;
+out vec4 vertexColor; // 为片段着色器指定一个颜色输出
 uniform float offset; // 在OpenGL程序代码中设定这个变量
         void main()
         {
             gl_Position = vec4(-aPos.x - offset, aPos.y, aPos.z, 1.0);
+            vertexColor = gl_Position;
         })";
 
 
@@ -39,10 +41,10 @@ auto fragmentShaderSource = R"(#version 330 core
 
 auto fragmentYellowShaderSource = R"(#version 330 core
             out vec4 FragColor;
-
+            in vec4 vertexColor;
             void main()
             {
-                FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+                FragColor = vertexColor;
             } )";
 
 
