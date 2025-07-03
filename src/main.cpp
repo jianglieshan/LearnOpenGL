@@ -2,7 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-
+#include <stb_image.h>
+#include <learnopengl/shader_s.h>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -62,36 +63,30 @@ void do_work(unsigned int VAO, unsigned int VBO, unsigned int EBO, float vertice
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_i, indices, GL_STATIC_DRAW);
 }
 
-unsigned int getShaderProgram(const char ** vertexShaderSource,const char ** fragmentShaderSource) {
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, vertexShaderSource, NULL );
-    glCompileShader(vertexShader);
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+unsigned int getShaderProgram(const char * vertexShaderSource,const char * fragmentShaderSource) {
+    const auto *vs = new vertex_shader();
+    int vs_res = vs->compile(vertexShaderSource);
+    const auto *fs = new fragment_shader();
+    int fs_res = fs->compile(fragmentShaderSource);
+    if (vs_res && fs_res) {
+        unsigned int shaderProgram = glCreateProgram();
+        glAttachShader(shaderProgram, vs->getID());
+        glAttachShader(shaderProgram, fs->getID());
+        glLinkProgram(shaderProgram);
+
+        //程序链接以后，即可删除编译产物
+        delete vs;
+        delete fs;
+        return shaderProgram;
     }
-
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    //程序链接以后，即可删除编译产物
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    return shaderProgram;
+    return 0;
 }
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -156,9 +151,9 @@ int main() {
     do_work(VAO[1], VBO[1], EBO[1], vertices1,sizeof(vertices1), indices1,sizeof(indices1));
 
 
-    unsigned int shaderProgram = getShaderProgram(&vertexShaderSource,&fragmentShaderSource);
+    unsigned int shaderProgram = getShaderProgram(vertexShaderSource,fragmentShaderSource);
 
-    unsigned int yellowShaderProgram = getShaderProgram(&vertexShaderSource1,&fragmentYellowShaderSource);
+    unsigned int yellowShaderProgram = getShaderProgram(vertexShaderSource1,fragmentYellowShaderSource);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);

@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.31)
 project(LearnOpenGL)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
-set(GLAD_SRC ${CMAKE_SOURCE_DIR}/src/glad.c)
+# 收集 src 目录下的所有 .c 和 .cpp 文件
+file(GLOB SRC_FILES  "src/*.c" "src/*.cpp")
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-add_executable(LearnOpenGL src/main.cpp ${GLAD_SRC})
+add_executable(LearnOpenGL ${SRC_FILES})
 
 target_link_directories(LearnOpenGL PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
@@ -16,6 +17,23 @@ target_link_libraries(LearnOpenGL PRIVATE
         glfw3  # 直接使用GLFW官方目标名
         opengl32
 )
+
+# 定义资源文件列表
+file(GLOB RESOURCES  RELATIVE "${CMAKE_SOURCE_DIR}" "resources/*.*")
+
+# 复制资源文件到构建目录
+foreach(resource ${RESOURCES})
+    get_filename_component(dest_dir "${CMAKE_BINARY_DIR}/${resource}" DIRECTORY)
+
+    # 确保目标目录存在
+    file(MAKE_DIRECTORY ${dest_dir})
+
+    configure_file(
+            ${CMAKE_SOURCE_DIR}/${resource}
+            ${CMAKE_BINARY_DIR}/${resource}
+            COPYONLY
+    )
+endforeach()
 
 # 针对 MinGW 的额外配置
 if(MINGW)
