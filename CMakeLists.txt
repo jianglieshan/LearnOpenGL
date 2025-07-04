@@ -18,22 +18,28 @@ target_link_libraries(LearnOpenGL PRIVATE
         opengl32
 )
 
-# 定义资源文件列表
-file(GLOB RESOURCES  RELATIVE "${CMAKE_SOURCE_DIR}" "resources/*.*")
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/resources)
 
-# 复制资源文件到构建目录
-foreach(resource ${RESOURCES})
-    get_filename_component(dest_dir "${CMAKE_BINARY_DIR}/${resource}" DIRECTORY)
+# 递归获取所有资源文件
+file(GLOB_RECURSE RES_FILES
+        RELATIVE ${CMAKE_SOURCE_DIR}/resources
+        ${CMAKE_SOURCE_DIR}/resources/*)
 
-    # 确保目标目录存在
-    file(MAKE_DIRECTORY ${dest_dir})
-
-    configure_file(
-            ${CMAKE_SOURCE_DIR}/${resource}
-            ${CMAKE_BINARY_DIR}/${resource}
-            COPYONLY
+# 为每个资源创建复制规则
+foreach(file ${RES_FILES})
+    set(src ${CMAKE_SOURCE_DIR}/resources/${file})
+    set(dst ${CMAKE_BINARY_DIR}/resources/${file})
+    add_custom_command(
+            OUTPUT ${dst}
+            COMMAND ${CMAKE_COMMAND} -E copy ${src} ${dst}
+            DEPENDS ${src}
     )
+    list(APPEND ALL_DST ${dst})
 endforeach()
+
+add_custom_target(ResourceCopy ALL DEPENDS ${ALL_DST})
+
+add_dependencies(LearnOpenGL ResourceCopy)  # 确保先复制资源
 
 # 针对 MinGW 的额外配置
 if(MINGW)

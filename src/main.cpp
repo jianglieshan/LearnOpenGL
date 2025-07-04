@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stb_image.h>
 #include <learnopengl/shader_s.h>
+#include <filesystem>
+#include <fstream>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -12,41 +14,6 @@ void processInput(GLFWwindow *window);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-auto vertexShaderSource = R"(#version 330 core
-layout (location = 0) in vec3 aPos;
-
-        void main()
-        {
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-        })";
-
-auto vertexShaderSource1 = R"(#version 330 core
-layout (location = 0) in vec3 aPos;
-out vec4 vertexColor; // 为片段着色器指定一个颜色输出
-uniform float offset; // 在OpenGL程序代码中设定这个变量
-        void main()
-        {
-            gl_Position = vec4(-aPos.x - offset, aPos.y, aPos.z, 1.0);
-            vertexColor = gl_Position;
-        })";
-
-
-auto fragmentShaderSource = R"(#version 330 core
-            out vec4 FragColor;
-
-            void main()
-            {
-                FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-            } )";
-
-auto fragmentYellowShaderSource = R"(#version 330 core
-            out vec4 FragColor;
-            in vec4 vertexColor;
-            void main()
-            {
-                FragColor = vertexColor;
-            } )";
 
 
 void do_work(unsigned int VAO, unsigned int VBO, unsigned int EBO, float vertices[],int size_v, unsigned int indices[],int size_i) {
@@ -80,6 +47,23 @@ unsigned int getShaderProgram(const char * vertexShaderSource,const char * fragm
         return shaderProgram;
     }
     return 0;
+}
+
+std::string read_large_file(const std::filesystem::path& path) {
+    std::ifstream file(path, std::ios::binary);
+    if (!file) throw std::runtime_error("文件打开失败: " + path.string());
+
+    const auto size = std::filesystem::file_size(path);
+    std::string content;
+    content.resize(size);
+
+    // 添加读取验证
+    if (!file.read(content.data(), size)) {
+        throw std::runtime_error("读取不完全，实际读取: " +
+                                std::to_string(file.gcount()) +
+                                "/" + std::to_string(size));
+    }
+    return content;
 }
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -150,10 +134,17 @@ int main() {
     };
     do_work(VAO[1], VBO[1], EBO[1], vertices1,sizeof(vertices1), indices1,sizeof(indices1));
 
+    std::filesystem::path p1{"resources/shader/a.vert"};
+    std::filesystem::path p2{"resources/shader/c.frag"};
+    std::filesystem::path p3{"resources/shader/b.vert"};
+    std::filesystem::path p4{"resources/shader/d.frag"};
 
-    unsigned int shaderProgram = getShaderProgram(vertexShaderSource,fragmentShaderSource);
-
-    unsigned int yellowShaderProgram = getShaderProgram(vertexShaderSource1,fragmentYellowShaderSource);
+    auto v1 = read_large_file(p1);
+    auto f1 = read_large_file(p2);
+    unsigned int shaderProgram = getShaderProgram(v1.c_str(),f1.c_str());
+    auto v2 = read_large_file(p3);
+    auto f2 = read_large_file(p4);
+    unsigned int yellowShaderProgram = getShaderProgram(v2.c_str(),f2.c_str());
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
